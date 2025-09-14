@@ -1,24 +1,35 @@
-import { ProductFormData } from '../Container';
+import type { ProductFormData } from "../Container";
+import Button from "../../ui/Button";
 
-type Props = {
+interface StepPreviewProps {
   data: ProductFormData;
-  onBack: () => void;
   onNext: () => void;
-};
+  onBack: () => void;
+}
 
-export const StepPreview = ({ data, onBack, onNext }: Props) => (
-  <div className="space-y-4">
-    <h2 className="text-xl font-semibold">Preview Your Listing</h2>
-    <div className="border rounded p-4">
-      <p><strong>Title:</strong> {data.title}</p>
-      <p><strong>Description:</strong> {data.description}</p>
-      <p><strong>Price:</strong> ${(data.priceCents / 100).toFixed(2)}</p>
+export const StepPreview = ({ data, onNext, onBack }: StepPreviewProps) => {
+  return (
+    <div className="space-y-4">
+      <h2 className="text-xl font-semibold">Preview Your Product</h2>
+      <div className="p-4 bg-gray-50 rounded-md space-y-2">
+        <p>
+          <strong>Title:</strong> {data.title}
+        </p>
+        <p>
+          <strong>Description:</strong> {data.description}
+        </p>
+        <p>
+          <strong>Price:</strong> ${(data.priceCents / 100).toFixed(2)}
+        </p>
+      </div>
+      <div className="flex justify-between">
+        <Button variant="secondary" onClick={onBack}>
+          Back
+        </Button>
+        <Button variant="primary" onClick={onNext}>
+          Next
+        </Button>
+      </div>
     </div>
-    <div className="flex justify-between">
-      <button onClick={onBack} className="px-4 py-2 border rounded">Back</button>
-      <button onClick={onNext} className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-        Confirm
-      </button>
-    </div>
-  </div>
-);
+  );
+};

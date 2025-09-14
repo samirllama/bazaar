@@ -1,34 +1,38 @@
 import { useQuery } from "@apollo/client/react";
-import { GET_PRODUCTS } from "../graphql/queries";
-import { CreateListingForm } from "./CreateListingForm";
+import { GET_PRODUCTS } from "../graphql/products";
+import Card from "./ui/Card";
+import Button from "./ui/Button";
 
-export const ProductList = () => {
+export default function ProductList() {
   const { data, loading, error } = useQuery(GET_PRODUCTS, {
-    variables: { limit: 10 },
+    variables: { limit: 50 },
   });
 
-  if (loading) return <p>Loading products…</p>;
-  if (error) return <p>Error loading products: {error.message}</p>;
+  if (loading) return <p className="text-center mt-10">Loading products...</p>;
+  if (error)
+    return (
+      <p className="text-center mt-10 text-red-500">Error: {error.message}</p>
+    );
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {data.products.map((product: any) => (
-        <div key={product.id} className="border rounded p-4 shadow">
-          <h2 className="text-lg font-bold">{product.title}</h2>
-          <p className="text-gray-600">{product.description}</p>
-          <p className="font-semibold">
-            {(product.priceCents / 100).toLocaleString("en-US", {
-              style: "currency",
-              currency: "USD",
-            })}
-          </p>
-          <p className="text-sm text-gray-500">
-            Seller: {product.seller?.name}
-          </p>
-
-          <CreateListingForm productId={product.id} />
-        </div>
+        <Card key={product.id} className="flex flex-col justify-between">
+          <div>
+            <h3 className="font-bold text-lg mb-2">{product.title}</h3>
+            <p className="text-gray-700 mb-2">{product.description}</p>
+            <p className="text-gray-500 text-sm mb-1">
+              Price: ${(product.priceCents / 100).toFixed(2)}
+            </p>
+            <p className="text-gray-400 text-sm">
+              Seller: {product.seller.name} ({product.seller.user.email})
+            </p>
+          </div>
+          <Button variant="primary" size="sm" className="mt-4">
+            Buy
+          </Button>
+        </Card>
       ))}
     </div>
   );
-};
+}

@@ -22,9 +22,7 @@ const httpLink = new HttpLink({ uri: GRAPHQL_URL, })
 // Combine links and create the client
 const client = new ApolloClient({
     cache: new InMemoryCache(),
-
-    link: httpLink,
-    // link: ApolloLink.from([authLink, httpLink]),
+    link: ApolloLink.from([authLink, httpLink]),
 })
 
 export default client;

@@ -1,55 +1,61 @@
-import { ProductFormData } from "../WizardContainer";
+import type { ProductFormData } from "../Container";
+import Button from "../../ui/Button";
 
-type Props = {
+interface StepProductDetailsProps {
   data: ProductFormData;
   onChange: (data: ProductFormData) => void;
   onNext: () => void;
-};
+}
 
-export const StepProductDetails = ({ data, onChange, onNext }: Props) => {
-  const updateField = (
-    field: keyof ProductFormData,
-    value: string | number
-  ) => {
-    onChange({ ...data, [field]: value });
-  };
-
+export const StepProductDetails = ({
+  data,
+  onChange,
+  onNext,
+}: StepProductDetailsProps) => {
   return (
-    <div className="space-y-4">
+    <form
+      className="space-y-4"
+      onSubmit={(e) => {
+        e.preventDefault();
+        onNext();
+      }}
+    >
       <div>
-        <label className="block text-sm font-medium">Title</label>
+        <label className="block mb-1 font-medium">Product Name</label>
         <input
           type="text"
-          className="w-full border rounded p-2"
+          className="w-full border p-2 rounded"
           value={data.title}
-          onChange={(e) => updateField("title", e.target.value)}
+          onChange={(e) => onChange({ ...data, title: e.target.value })}
+          required
         />
       </div>
+
       <div>
-        <label className="block text-sm font-medium">Description</label>
+        <label className="block mb-1 font-medium">Description</label>
         <textarea
-          className="w-full border rounded p-2"
+          className="w-full border p-2 rounded"
           value={data.description}
-          onChange={(e) => updateField("description", e.target.value)}
+          onChange={(e) => onChange({ ...data, description: e.target.value })}
         />
       </div>
+
       <div>
-        <label className="block text-sm font-medium">Price (USD)</label>
+        <label className="block mb-1 font-medium">Price (in cents)</label>
         <input
           type="number"
-          className="w-full border rounded p-2"
-          value={data.priceCents / 100 || ""}
+          className="w-full border p-2 rounded"
+          value={data.priceCents}
           onChange={(e) =>
-            updateField("priceCents", parseFloat(e.target.value) * 100)
+            onChange({ ...data, priceCents: Number(e.target.value) })
           }
+          required
         />
       </div>
-      <button
-        onClick={onNext}
-        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-      >
+
+      <Button variant="primary" type="submit">
         Next
-      </button>
-    </div>
+      </Button>
+    </form>
   );
 };

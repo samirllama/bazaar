@@ -6,6 +6,7 @@ export const typeDefs = gql`
     id: ID!
     name: String!
     email: String
+    createdAt: String!
   }
   type Product {
     id: ID!

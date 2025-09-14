@@ -1,20 +1,19 @@
-// src/graphql/auth.ts
-import { gql } from '@apollo/client'
+import { gql } from "@apollo/client";
 
-export const SIGNUP_MUTATION = gql`
+export const SIGN_UP = gql`
   mutation SignUp($email: String!, $password: String!) {
     signUp(email: $email, password: $password) {
       token
       user { id email }
     }
   }
-`
+`;
 
-export const LOGIN_MUTATION = gql`
-  mutation Login($email: String!, $password: String!) {
-    login(email: $email, password: $password) {
+export const SIGN_IN = gql`
+  mutation SignIn($email: String!, $password: String!) {
+    signIn(email: $email, password: $password) {
       token
       user { id email }
     }
   }
-`
+`;

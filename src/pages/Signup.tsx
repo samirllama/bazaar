@@ -1,25 +1,29 @@
 // src/pages/Signup.tsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../lib/AuthContext";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
-import { useAuth } from "../lib/AuthContext";
 
 export default function SignupPage() {
   const navigate = useNavigate();
-  const { signup } = useAuth(); // ✅ this now exists
+  const { signUp } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    console.log("useAuth signUp", signUp);
+  }, [signUp]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
     try {
-      await signup(email, password);
-      navigate("/sell"); // redirect after signup
+      await signUp(email, password);
+      navigate("/sell");
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -52,7 +56,7 @@ export default function SignupPage() {
               required
             />
           </div>
-          <Button type="submit" variant="primary" size="md" className="w-full">
+          <Button type="submit" variant="primary" className="w-full">
             {loading ? "Creating Account..." : "Sign Up"}
           </Button>
           {error && <p className="text-red-500 mt-2 text-center">{error}</p>}

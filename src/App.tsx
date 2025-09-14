@@ -1,10 +1,8 @@
 import { useEffect } from "react";
 import { Link, Routes, Route } from "react-router-dom";
-import { LandingPage } from "./components/LandingPage";
 import ProductList from "./components/ProductList";
 import { WizardContainer } from "./components/listing-wizard/Container";
-import SignupForm from "./components/SignupForm";
-import Home from "./pages/Home";
+import LandingPage from "./pages/Landing";
 import SignupPage from "./pages/Signup";
 import LoginPage from "./pages/Login";
 
@@ -51,7 +49,7 @@ function App() {
         </Link>
       </div>
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<LandingPage />} />
         <Route path="/products" element={<ProductList />} />
         <Route path="/sell" element={<WizardContainer />} />
         <Route path="/login" element={<LoginPage />} />

@@ -7,7 +7,7 @@ import { useAuth } from "../lib/AuthContext";
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const { signin } = useAuth(); // ✅ now exists
+  const { signIn } = useAuth(); // ✅ now exists
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -18,7 +18,7 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
     try {
-      await signin(email, password);
+      await signIn(email, password);
       navigate("/sell"); // redirect after login
     } catch (err: any) {
       setError(err.message);

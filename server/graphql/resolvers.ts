@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import { db } from '../../db/db'
 import { users, sellers, products } from '../../db/schema'
-import { eq } from 'drizzle-orm'
+import { eq, SQLWrapper } from 'drizzle-orm'
 import { randomUUID } from 'crypto'
 
 
@@ -12,73 +12,67 @@ const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret' // replace in prod
 
 export const resolvers = {
   Query: {
-    products: async (_: any, { limit }: { limit: number }) => {
-      return db.select().from(products).limit(limit)
+    products: async (_parent, args: { limit?: number }) => {
+      const limit = args.limit ?? 50;
+      return await db.select().from(products).limit(limit);
     },
-    product: async (_: any, { id }: { id: string }) => {
-      const [product] = await db.select().from(products).where(eq(products.id, id))
-      return product
+    product: async (_parent, args: { id: string }) => {
+      const [product] = await db.select().from(products).where(eq(products.id, args.id));
+      return product;
     },
-    sellers: async () => db.select().from(sellers),
-    seller: async (_: any, { id }: { id: string }) => {
-      const [seller] = await db.select().from(sellers).where(eq(sellers.id, id))
-      return seller
+    sellers: async () => {
+      return await db.select().from(sellers);
+    },
+    seller: async (_parent, args: { id: string }) => {
+      const [seller] = await db.select().from(sellers).where(eq(sellers.id, args.id));
+      return seller;
     },
   },
 
   Mutation: {
-    signUp: async (_: any, { email, password }: { email: string, password: string }) => {
-      const hashedPassword = await bcrypt.hash(password, 10)
-      const id = randomUUID()
-      await db.insert(users).values({ id, email, password: hashedPassword }).run()
+    signUp: async (_: any, { email, password }: { email: string; password: string }) => {
+      const existing = await db.select().from(users).where(eq(users.email, email)).limit(1);
+      if (existing.length) throw new Error("User already exists");
 
-      const token = jwt.sign({ userId: id }, JWT_SECRET, { expiresIn: '7d' })
-      return { token, user: { id, email } }
+      const hashed = await bcrypt.hash(password, 10);
+      const [newUser] = await db.insert(users).values({ email, password: hashed }).returning();
+      const token = jwt.sign({ userId: newUser.id }, process.env.JWT_SECRET!, {
+        expiresIn: "7d",
+      });
+
+      return { token, user: { id: newUser.id, email: newUser.email } };
+
     },
 
-    login: async (_: any, { email, password }: { email: string, password: string }) => {
-      const [user] = await db.select().from(users).where(eq(users.email, email))
-      if (!user) throw new Error('User not found')
+    signIn: async (_: any, { email, password }: { email: string; password: string }) => {
+      const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
+      if (!user) throw new Error("Invalid credentials");
 
-      const valid = await bcrypt.compare(password, user.password)
-      if (!valid) throw new Error('Incorrect password')
+      const valid = await bcrypt.compare(password, user.password);
+      if (!valid) throw new Error("Invalid credentials");
 
-      const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '7d' })
-      return { token, user: { id: user.id, email: user.email } }
+
+      const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET!, {
+        expiresIn: "7d",
+      });
+
+      return { token, user: { id: user.id, email: user.email } };
     },
 
-    createProduct: async (
-      _: any,
-      { input }: { input: { title: string; description?: string; priceCents: number } },
-      context: any
-    ) => {
-      if (!context.user) throw new Error('Not authenticated')
-      const userId = context.user.id
 
-      // 2. Find or create Seller for this user
-      let [seller] = await db.select().from(sellers).where(eq(sellers.userId, userId))
-      if (!seller) {
-        const [user] = await db.select().from(users).where(eq(users.id, userId))
-        await db.insert(sellers).values({
-          id: randomUUID(),
-          userId,
-          name: user.email.split('@')[0], // Example: default name from email prefix
-          email: user.email,
-        })
-          ;[seller] = await db.select().from(sellers).where(eq(sellers.userId, userId))
-      }
+    createProduct: async (_parent: any, args: { input: { title: string; description?: string; priceCents: number } }, context: { userId: string | SQLWrapper }) => {
+      if (!context.userId) throw new Error('Not authenticated');
+      const seller = await db.select().from(sellers).where(eq(sellers.userId, context.userId)).then(r => r[0]);
+      if (!seller) throw new Error('Seller not found');
 
-      const newProductId = randomUUID()
-      await db.insert(products).values({
-        id: newProductId,
+      const [newProduct] = await db.insert(products).values({
+        title: args.input.title,
+        description: args.input.description,
+        priceCents: args.input.priceCents,
         sellerId: seller.id,
-        title: input.title,
-        description: input.description || '',
-        priceCents: input.priceCents,
-      }).run()
+      }).returning();
 
-      const [newProduct] = await db.select().from(products).where(eq(products.id, newProductId))
-      return newProduct
+      return newProduct;
     },
   },
 

@@ -1,0 +1,30 @@
+query GetProducts($limit: Int = 50) {
+  products(limit: $limit) {
+    id
+    title
+    description
+    priceCents
+    createdAt
+    seller {
+      id
+      name
+      email
+      createdAt
+    }
+  }
+}
+
+mutation CreateProduct($input: CreateProductInput!) {
+  createProduct(input: $input) {
+    id
+    title
+    description
+    priceCents
+    createdAt
+    seller {
+      id
+      name
+      email
+    }
+  }
+}

@@ -10,6 +10,7 @@ export const typeDefs = gql`
 
   type Seller {
     id: ID!
+    userId: ID!         # FK to users
     user: User!
     name: String!
     email: String!
@@ -45,7 +46,8 @@ export const typeDefs = gql`
 
   type Mutation {
     signUp(email: String!, password: String!): AuthPayload!
-    login(email: String!, password: String!): AuthPayload!
+    signIn(email: String!, password: String!): AuthPayload!
     createProduct(input: CreateProductInput!): Product!
+    updateListingPrice(id: ID!, priceCents: Int!): Product!
   }
 `

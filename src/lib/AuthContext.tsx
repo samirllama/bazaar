@@ -1,62 +1,98 @@
 // src/lib/AuthContext.tsx
 import { createContext, useContext, useState } from "react";
 import type { ReactNode } from "react";
-import bcrypt from "bcrypt";
-import type { users, InsertUser, SelectUser } from "../../db/schema";
-import { db } from "../../db/db";
-import jwt from "jsonwebtoken";
+// src/lib/AuthContext.tsx
+import apolloClient from "./apolloClient";
+import { gql } from "@apollo/client";
 
-interface AuthContextType {
+type AuthContextType = {
   userId: string | null;
-  signin: (email: string, password: string) => Promise<void>;
-  signup: (email: string, password: string) => Promise<void>;
-  signout: () => void;
-}
+  token: string | null;
+  signUp: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<void>;
+  signOut: () => void;
+};
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+// GraphQL mutations
+const SIGNUP_MUTATION = gql`
+  mutation SignUp($email: String!, $password: String!) {
+    signUp(email: $email, password: $password) {
+      token
+      user {
+        id
+        email
+      }
+    }
+  }
+`;
+
+const SIGNIN_MUTATION = gql`
+  mutation SignIn($email: String!, $password: String!) {
+    signIn(email: $email, password: $password) {
+      token
+      user {
+        id
+        email
+      }
+    }
+  }
+`;
+
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [userId, setUserId] = useState<string | null>(null);
+  const [token, setToken] = useState<string | null>(
+    localStorage.getItem("token")
+  );
 
-  const signup = async (email: string, password: string) => {
-    // Check if user exists
-    const existing = await db
-      .select()
-      .from(users)
-      .where(users.email.eq(email))
-      .limit(1);
-    if (existing.length) throw new Error("User already exists");
-    const hashed = await bcrypt.hash(password, 10);
-    const newUser: InsertUser = { email, password: hashed };
-    const result = await db.insert(users).values(newUser).returning();
-    setUserId(result[0].id);
+  const saveAuth = (userId: string, token: string) => {
+    setUserId(userId);
+    setToken(token);
+    localStorage.setItem("token", token);
   };
 
-  const signin = async (email: string, password: string) => {
-    const [user] = await db
-      .select()
-      .from(users)
-      .where(users.email.eq(email))
-      .limit(1);
-    if (!user) throw new Error("Invalid credentials");
-    const valid = await bcrypt.compare(password, user.password);
-    if (!valid) throw new Error("Invalid credentials");
-    setUserId(user.id);
-  };
-
-  const signout = () => {
+  const clearAuth = () => {
     setUserId(null);
+    setToken(null);
+    localStorage.removeItem("token");
+  };
+
+  const signUp = async (email: string, password: string) => {
+    const { data } = await apolloClient.mutate({
+      mutation: SIGNUP_MUTATION,
+      variables: { email, password },
+    });
+    if (!data?.signUp?.token) throw new Error("Signup failed");
+
+    saveAuth(data.signUp.user.id, data.signUp.token);
+  };
+
+  const signIn = async (email: string, password: string) => {
+    const { data } = await apolloClient.mutate({
+      mutation: SIGNIN_MUTATION,
+      variables: { email, password },
+    });
+    if (!data?.signIn?.token) throw new Error("Signin failed");
+
+    saveAuth(data.signIn.user.id, data.signIn.token);
+  };
+
+  const signOut = () => {
+    clearAuth();
   };
 
   return (
-    <AuthContext.Provider value={{ userId, signin, signup, signout }}>
+    <AuthContext.Provider value={{ userId, token, signUp, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );
-}
+};
 
+// Hook to consume auth context
 export const useAuth = () => {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
-  return ctx;
+  const context = useContext(AuthContext);
+  if (!context) throw new Error("useAuth must be used within AuthProvider");
+
+  return context;
 };

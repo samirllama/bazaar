@@ -24,9 +24,11 @@ export default function ProductList() {
             <p className="text-gray-500 text-sm mb-1">
               Price: ${(product.priceCents / 100).toFixed(2)}
             </p>
-            <p className="text-gray-400 text-sm">
-              Seller: {product.seller.name} ({product.seller.user.email})
-            </p>
+            {product?.seller && (
+              <p className="text-gray-400 text-sm">
+                Contact seller: {product.seller.user.email}
+              </p>
+            )}
           </div>
           <Button variant="primary" size="sm" className="mt-4">
             Buy

@@ -2,6 +2,7 @@ type User {
   id: ID!
   email: String!
   createdAt: String!
+  products: [Product!]!
 }
 
 type Seller {
@@ -16,7 +17,7 @@ type Product {
   title: String!
   description: String
   priceCents: Int!
-  seller: Seller!
+  seller: User
   createdAt: String!
 }
 
@@ -26,10 +27,9 @@ type AuthPayload {
 }
 
 type Query {
+  me: User
   products(limit: Int = 50): [Product!]!
   product(id: ID!): Product
-  sellers: [Seller!]!
-  seller(id: ID!): Seller
 }
 
 input CreateProductInput {

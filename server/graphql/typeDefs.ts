@@ -40,8 +40,8 @@ export const typeDefs = gql`
   }
 
   type AuthPayload {
-    token: String!
     user: User!
+    token: String!
   }
 
   type Mutation {

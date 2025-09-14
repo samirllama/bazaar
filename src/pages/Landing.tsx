@@ -2,9 +2,11 @@
 import { useNavigate } from "react-router-dom";
 import Card from "../components/ui/Card";
 import Button from "../components/ui/Button";
+import { useAuth } from "../lib/AuthContext";
 
 export default function LandingPage() {
   const navigate = useNavigate();
+  const { userId } = useAuth();
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white flex flex-col items-center justify-center p-6">
@@ -15,7 +17,6 @@ export default function LandingPage() {
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
-        {/* Products Card */}
         <Card className="p-6 flex flex-col justify-between hover:shadow-xl transition-shadow cursor-pointer">
           <h2 className="text-2xl font-semibold mb-4">Products</h2>
           <p className="text-gray-700 mb-6">
@@ -31,7 +32,6 @@ export default function LandingPage() {
           </Button>
         </Card>
 
-        {/* Sell Products Card */}
         <Card className="p-6 flex flex-col justify-between hover:shadow-xl transition-shadow cursor-pointer">
           <h2 className="text-2xl font-semibold mb-4">Sell Products</h2>
           <p className="text-gray-700 mb-6">
@@ -40,10 +40,10 @@ export default function LandingPage() {
           </p>
           <Button
             variant="secondary"
-            onClick={() => navigate("/sell")}
+            onClick={() => (userId ? navigate("/sell") : navigate("/login"))}
             className="self-start"
           >
-            Start Selling
+            {userId ? "Start Selling" : "Login to Sell"}
           </Button>
         </Card>
       </div>

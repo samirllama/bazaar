@@ -9,14 +9,6 @@ export const GET_PRODUCTS = gql`
       description
       priceCents
       createdAt
-      seller {
-        id
-        name
-        user {
-          id
-          email
-        }
-      }
     }
   }
 `
@@ -31,11 +23,7 @@ export const CREATE_PRODUCT_MUTATION = gql`
       createdAt
       seller {
         id
-        name
-        user {
-          id
-          email
-        }
+        email
       }
     }
   }

@@ -7,7 +7,7 @@ import { useAuth } from "../lib/AuthContext";
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const { signIn } = useAuth(); // ✅ now exists
+  const { signIn } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);

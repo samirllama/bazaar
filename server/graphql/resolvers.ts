@@ -1,36 +1,31 @@
 import 'dotenv/config'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
-import { db } from '../../db/db'
 import { users, sellers, products } from '../../db/schema'
-import { eq, SQLWrapper } from 'drizzle-orm'
-import { randomUUID } from 'crypto'
-
-
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret' // replace in prod
+import { eq } from 'drizzle-orm'
 
 
 export const resolvers = {
   Query: {
-    products: async (_parent, args: { limit?: number }) => {
+    products: async (_parent, args: { limit?: number }, { db }) => {
       const limit = args.limit ?? 50;
       return await db.select().from(products).limit(limit);
     },
-    product: async (_parent, args: { id: string }) => {
+    product: async (_parent, args: { id: string }, { db }) => {
       const [product] = await db.select().from(products).where(eq(products.id, args.id));
       return product;
     },
-    sellers: async () => {
+    sellers: async (_, _args, { db }) => {
       return await db.select().from(sellers);
     },
-    seller: async (_parent, args: { id: string }) => {
+    seller: async (_parent, args: { id: string }, { db }) => {
       const [seller] = await db.select().from(sellers).where(eq(sellers.id, args.id));
       return seller;
     },
   },
 
   Mutation: {
-    signUp: async (_: any, { email, password }: { email: string; password: string }) => {
+    signUp: async (_, { email, password }: { email: string; password: string }, { db }) => {
       const existing = await db.select().from(users).where(eq(users.email, email)).limit(1);
       if (existing.length) throw new Error("User already exists");
 
@@ -44,7 +39,7 @@ export const resolvers = {
 
     },
 
-    signIn: async (_: any, { email, password }: { email: string; password: string }) => {
+    signIn: async (_, { email, password }: { email: string; password: string }, { db }) => {
       const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
       if (!user) throw new Error("Invalid credentials");
 
@@ -60,31 +55,31 @@ export const resolvers = {
     },
 
 
-    createProduct: async (_parent: any, args: { input: { title: string; description?: string; priceCents: number } }, context: { userId: string | SQLWrapper }) => {
-      if (!context.userId) throw new Error('Not authenticated');
-      const seller = await db.select().from(sellers).where(eq(sellers.userId, context.userId)).then(r => r[0]);
-      if (!seller) throw new Error('Seller not found');
+    createProduct: async (_parent, { input }, { db, userId }) => {
+      if (!userId) throw new Error('Not authenticated');
 
-      const [newProduct] = await db.insert(products).values({
-        title: args.input.title,
-        description: args.input.description,
-        priceCents: args.input.priceCents,
-        sellerId: seller.id,
-      }).returning();
+      const [newProduct] = await db
+        .insert(products)
+        .values({
+          title: input.title,
+          description: input.description,
+          priceCents: input.priceCents,
+          sellerId: userId,
+        })
+        .returning();
 
       return newProduct;
     },
+
   },
 
   Product: {
-    seller: async (parent) => {
-      const [seller] = await db.select().from(sellers).where(eq(sellers.id, parent.sellerId))
-      return seller
-    },
+    seller: async (parent, _args, { db }) =>
+      db.select().from(users).where(eq(users.id, parent.sellerId)).then(r => r[0]),
   },
 
   Seller: {
-    user: async (parent) => {
+    user: async (parent, _args, { db }) => {
       const [user] = await db.select().from(users).where(eq(users.id, parent.userId))
       return user
     },

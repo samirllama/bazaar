@@ -1,9 +1,8 @@
 // src/lib/AuthContext.tsx
 import { createContext, useContext, useState } from "react";
 import type { ReactNode } from "react";
-// src/lib/AuthContext.tsx
-import apolloClient from "./apolloClient";
-import { gql } from "@apollo/client";
+import client from "./apolloClient";
+import { SIGN_IN_MUTATION, SIGN_UP_MUTATION } from "../graphql/auth";
 
 type AuthContextType = {
   userId: string | null;
@@ -15,80 +14,51 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// GraphQL mutations
-const SIGNUP_MUTATION = gql`
-  mutation SignUp($email: String!, $password: String!) {
-    signUp(email: $email, password: $password) {
-      token
-      user {
-        id
-        email
-      }
-    }
-  }
-`;
-
-const SIGNIN_MUTATION = gql`
-  mutation SignIn($email: String!, $password: String!) {
-    signIn(email: $email, password: $password) {
-      token
-      user {
-        id
-        email
-      }
-    }
-  }
-`;
-
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [userId, setUserId] = useState<string | null>(null);
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [token, setToken] = useState<string | null>(
     localStorage.getItem("token")
   );
+  const [userId, setUserId] = useState<string | null>(
+    localStorage.getItem("userId")
+  );
 
-  const saveAuth = (userId: string, token: string) => {
-    setUserId(userId);
-    setToken(token);
+  const saveSession = (token: string, userId: string) => {
     localStorage.setItem("token", token);
-  };
-
-  const clearAuth = () => {
-    setUserId(null);
-    setToken(null);
-    localStorage.removeItem("token");
+    localStorage.setItem("userId", userId);
+    setToken(token);
+    setUserId(userId);
   };
 
   const signUp = async (email: string, password: string) => {
-    const { data } = await apolloClient.mutate({
-      mutation: SIGNUP_MUTATION,
+    const { data } = await client.mutate({
+      mutation: SIGN_UP_MUTATION,
       variables: { email, password },
     });
-    if (!data?.signUp?.token) throw new Error("Signup failed");
-
-    saveAuth(data.signUp.user.id, data.signUp.token);
+    saveSession(data.signUp.token, data.signUp.user.id);
   };
 
   const signIn = async (email: string, password: string) => {
-    const { data } = await apolloClient.mutate({
-      mutation: SIGNIN_MUTATION,
+    const { data } = await client.mutate({
+      mutation: SIGN_IN_MUTATION,
       variables: { email, password },
     });
-    if (!data?.signIn?.token) throw new Error("Signin failed");
-
-    saveAuth(data.signIn.user.id, data.signIn.token);
+    saveSession(data.signIn.token, data.signIn.user.id);
   };
 
   const signOut = () => {
-    clearAuth();
+    localStorage.clear();
+    setToken(null);
+    setUserId(null);
   };
 
   return (
-    <AuthContext.Provider value={{ userId, token, signUp, signIn, signOut }}>
+    <AuthContext.Provider value={{ token, userId, signIn, signUp, signOut }}>
       {children}
     </AuthContext.Provider>
   );
 };
-
 // Hook to consume auth context
 export const useAuth = () => {
   const context = useContext(AuthContext);

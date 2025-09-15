@@ -9,39 +9,37 @@ export default function LandingPage() {
   const { userId } = useAuth();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white flex flex-col items-center justify-center p-6">
-      <h1 className="text-4xl font-bold text-center mb-8">Welcome to Bazaar</h1>
-      <p className="text-center text-gray-600 mb-12 max-w-xl">
+    <div className="flex flex-col items-center pt-12 text-center sm:pt-18">
+      <h2 className="font-bold tracking-tight sm:text-5xl lg:text-6xl">
+        Welcome to Bazaar
+      </h2>
+      <p className="text-center text-gray-600 py-8 max-w-xl">
         Buy and sell products seamlessly. Experience a magical flow for sellers
         and a clean shopping experience for buyers.
       </p>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
-        <Card className="p-6 flex flex-col justify-between hover:shadow-xl transition-shadow cursor-pointer">
+      <div className="mt-10 flex items-center justify-center gap-4">
+        <Card className="p-6 flex flex-col basis-1/2 justify-between hover:shadow-xl transition-shadow cursor-pointer">
           <h2 className="text-2xl font-semibold mb-4">Products</h2>
-          <p className="text-gray-700 mb-6">
-            Browse all products available in the marketplace. See new listings
-            instantly.
-          </p>
+          <p className="text-gray-700 mb-6">Browse all available products.</p>
           <Button
             variant="primary"
             onClick={() => navigate("/products")}
-            className="self-start"
+            className="self-center"
           >
             View Products
           </Button>
         </Card>
 
-        <Card className="p-6 flex flex-col justify-between hover:shadow-xl transition-shadow cursor-pointer">
+        <Card className="p-6 flex flex-col basis-1/2 justify-between hover:shadow-xl transition-shadow cursor-pointer">
           <h2 className="text-2xl font-semibold mb-4">Sell Products</h2>
           <p className="text-gray-700 mb-6">
-            List your products quickly and easily. Guide through a magical
-            selling flow.
+            List your products quickly and easily.
           </p>
           <Button
             variant="secondary"
             onClick={() => (userId ? navigate("/sell") : navigate("/login"))}
-            className="self-start"
+            className="self-center"
           >
             {userId ? "Start Selling" : "Login to Sell"}
           </Button>

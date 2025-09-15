@@ -1,7 +1,7 @@
 // src/components/ui/Button.tsx
-import type { ButtonHTMLAttributes, ReactNode } from "react";
-import { twMerge } from "tailwind-merge";
-import clsx from "clsx";
+
+import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from "react";
+import { cn } from "../../lib/utils";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "primary" | "secondary" | "success" | "danger";
@@ -9,39 +9,50 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;
 }
 
-export default function Button({
-  children,
-  variant = "primary",
-  size = "md",
-  className,
-  ...props
-}: ButtonProps) {
-  const baseStyles =
-    "font-semibold rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition";
+const Button = forwardRef<HTMLButtonElement, ButtonProps>(
+  (
+    { children, variant = "primary", size = "md", className, ...props },
+    ref
+  ) => {
+    // Base styles for all buttons - slightly tweaked for better focus rings
+    const baseStyles =
+      "inline-flex items-center justify-center rounded-lg font-semibold tracking-tight transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-neutral-950 disabled:opacity-50";
 
-  const variantStyles = clsx({
-    "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500":
-      variant === "primary",
-    "bg-gray-200 text-gray-800 hover:bg-gray-300 focus:ring-gray-400":
-      variant === "secondary",
-    "bg-green-600 text-white hover:bg-green-700 focus:ring-green-500":
-      variant === "success",
-    "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500":
-      variant === "danger",
-  });
+    // All variant styles have been modernized
+    const variantStyles = {
+      primary:
+        "bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-md hover:shadow-lg focus-visible:ring-purple-500",
+      secondary:
+        "border border-neutral-300 bg-transparent text-neutral-800 hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800 focus-visible:ring-neutral-500",
+      success:
+        "bg-green-500/10 text-green-700 hover:bg-green-500/20 dark:text-green-400 dark:hover:bg-green-500/20 focus-visible:ring-green-500",
+      danger:
+        "bg-red-500/10 text-red-600 hover:bg-red-500/20 dark:text-red-400 dark:hover:bg-red-500/20 focus-visible:ring-red-500",
+    };
 
-  const sizeStyles = clsx({
-    "px-3 py-1 text-sm": size === "sm",
-    "px-4 py-2 text-base": size === "md",
-    "px-5 py-3 text-lg": size === "lg",
-  });
+    const sizeStyles = {
+      sm: "px-3 py-1.5 text-sm",
+      md: "px-5 py-2.5 text-base",
+      lg: "px-6 py-3 text-lg",
+    };
 
-  return (
-    <button
-      className={twMerge(baseStyles, variantStyles, sizeStyles, className)}
-      {...props}
-    >
-      {children}
-    </button>
-  );
-}
+    return (
+      <button
+        ref={ref}
+        className={cn(
+          baseStyles,
+          variantStyles[variant],
+          sizeStyles[size],
+          className
+        )}
+        {...props}
+      >
+        {children}
+      </button>
+    );
+  }
+);
+
+Button.displayName = "Button";
+
+export default Button;

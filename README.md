@@ -25,12 +25,12 @@ This project was built to solve the real-world challenge of creating an intuitiv
 | Category     | Technology                               |
 | ------------ | ---------------------------------------- |
 | **Frontend** | React, Vite, Tailwind CSS, Apollo Client |
-| **Backend**  | Node.js, Express.js, Apollo Server       |
+| **Backend**  | Node.js, Apollo Server                   |
 | **Language** | JavaScript (ES6+), Typescript            |
 
 ---
 
-## 🏛️ Architecture Deep Dive
+## 🏛️ Architecture
 
 This project is structured as a monorepo with two main packages: `client` and `server`.
 
@@ -81,7 +81,7 @@ To get a local copy up and running, please follow these simple steps.
 1. **Clone the repository:**
 
    ```sh
-   git clone [https://github.com/samirllama/bazaar.git](https://github.com/samirllama/bazaar.git)
+   git clone https://github.com/samirllama/bazaar.git
    cd bazaar
    ```
 

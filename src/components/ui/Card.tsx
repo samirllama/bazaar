@@ -14,7 +14,8 @@ export default function Card({
   className,
   variant = "default",
 }: CardProps) {
-  const baseStyles = "rounded-lg p-6 shadow transition hover:shadow-lg";
+  const baseStyles =
+    "rounded-lg p-6 min-w-[40ch] shadow transition hover:shadow-lg";
 
   const variantStyles = clsx({
     "bg-white": variant === "default",

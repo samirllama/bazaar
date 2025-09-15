@@ -1,22 +1,31 @@
 # Bazaar 🧙‍♂️
 
-A robust, multi-step form application designed to showcase a modern frontend architecture for an e-commerce seller flow.
+A modern, full-stack e-commerce demo showcasing a **GraphQL + React** workflow with authentication, database persistence, and a seller flow with a multi-step form.
 
 ---
 
 ## 📖 Project Overview
 
-This project was built to solve the real-world challenge of creating an intuitive and seamless item listing experience for sellers on an e-commerce platform. It's a targeted portfolio piece that demonstrates not just the ability to build features, but the architectural thinking required to build scalable and maintainable frontend systems. The core of the application is a multi-step "wizard" that guides the user through the entire listing process, from entering basic details to submitting the final product.
+Bazaar simulates a simplified marketplace where **users can sign up, log in, and list products** for sale. It demonstrates:
+
+- Secure authentication using **JWT**.
+- Database persistence with **Drizzle ORM** and **Turso (SQLite)**.
+- A **multi-step product listing wizard** for a smooth seller experience.
+- **Apollo Client/Server** integration following Apollo’s **latest best practices**.
+- **Type-safe GraphQL hooks** generated automatically with **GraphQL Code Generator**.
 
 ---
 
 ## ✨ Key Features
 
-- **Fully Responsive Multi-Step Wizard:** A seamless user experience across all five steps of the listing process.
-- **Client-Side State Management:** Centralized state management using **React Context** to handle form data across multiple, distinct components.
+- 🔐 **Authentication**: JWT-based sign-up, login, and protected routes.
+- 🧭 **Seller Flow**: Multi-step wizard for creating products.
 - **Image Preview:** Users can select an image and see a preview before submission.
-- **GraphQL Integration:** Uses **Apollo Client** to send the final form data to a mock backend via a GraphQL mutation.
-- **Reusable Component Library:** Built with a focus on creating generic, reusable UI components for maximum code reuse.
+- 🗄 **Database Integration**: Drizzle ORM with Turso (SQLite) for persistence.
+- 🔗 **GraphQL**: Apollo Client/Server with context-based auth.
+- 🧰 **Code Generation**: Automatic TypeScript types and hooks from GraphQL operations.
+- 🎨 **Reusable UI Library**: Clean, Tailwind-powered components.
+- 🌗 **Theme Handling**: Automatic dark/light mode support.
 
 ---
 
@@ -32,7 +41,56 @@ This project was built to solve the real-world challenge of creating an intuitiv
 
 ## 🏛️ Architecture
 
-This project is structured as a monorepo with two main packages: `client` and `server`.
+The repository is structured as a monorepo with `client` and `server`.
+
+### **Database**
+
+We simplified our schema to **two tables**:
+
+- `users` – stores user accounts.
+- `products` – stores product listings (linked by `sellerId` = `users.id`).
+
+Drizzle handles migrations and querying.
+
+### **GraphQL Schema**
+
+```graphql
+type User {
+  id: ID!
+  email: String!
+  createdAt: String!
+}
+
+type Product {
+  id: ID!
+  title: String!
+  description: String
+  priceCents: Int!
+  seller: User!
+  createdAt: String!
+}
+
+type AuthPayload {
+  token: String!
+  user: User!
+}
+
+type Query {
+  products: [Product!]!
+}
+
+type Mutation {
+  signUp(email: String!, password: String!): AuthPayload!
+  signIn(email: String!, password: String!): AuthPayload!
+  createProduct(input: CreateProductInput!): Product!
+}
+
+input CreateProductInput {
+  title: String!
+  description: String
+  priceCents: Int!
+}
+```
 
 ### Overall Data Flow
 
@@ -40,82 +98,115 @@ The application follows a predictable, one-way data flow. User input is captured
 
 `Component Input` → `React Context (State Update)` → `Final Review Step` → `Apollo Client Mutation` → `GraphQL Server`
 
-### State Management
+### **Server Context**
 
-To manage the form's state across the entire five-step process, we use **React's Context API**. A single `ListingContext` is created to act as a centralized store for all form data.
+The Apollo Server attaches the database and authenticated user to the context:
 
-- **Why Context?** It avoids "prop drilling" (passing props down through many levels of components) and is a lightweight, built-in solution perfect for managing client-side state of this scope without the need for a heavier library like Redux.
+```ts
+export interface ContextValue {
+  db: typeof db;
+  userId: string | null;
+  user: { id: string; email: string } | null;
+}
+```
 
-### Component Architecture
+### **Authentication**
 
-The `client/src/components` directory is organized to distinguish between generic UI elements and feature-specific components:
+- On **sign up** or **sign in**, the server generates a JWT.
+- Apollo Client stores this token in `localStorage`.
+- Every request sends the token as a **Bearer** header via `SetContextLink`.
+- Resolvers use `context.userId` for authorization.
 
-- **`/components/ui`**: Contains highly reusable, "dumb" components that are application-agnostic (e.g., `<Button />`, `<StyledInput />`, `<Card />`). These are the building blocks of our interface.
-- **`/components/steps`**: Contains the five components that represent each step of the wizard. These components are responsible for the layout and logic of a specific step and consume the `ListingContext`.
+### **Code Generation**
+
+GraphQL Codegen is configured to generate:
+
+- Typed query/mutation hooks (`useSignUpMutation`, `useCreateProductMutation`).
+- Strongly-typed schema types for resolvers.
+
+Run:
+
+```bash
+pnpm codegen
+```
 
 ---
 
-## 🧩 Reusable Component Documentation
+## 🧩 Reusable Component Library
 
-Here are a few of the key reusable components from the `/ui` directory:
-
-| Component             | Props                      | Prop Types                   | Description                                         |
-| --------------------- | -------------------------- | ---------------------------- | --------------------------------------------------- |
-| **`<Button />`**      | `variant` `children`       | `string` `ReactNode`         | The primary button for form actions and navigation. |
-| **`<StyledInput />`** | `label` `value` `onChange` | `string` `string` `function` | A styled text input with an associated label.       |
-| **`<Card />`**        | `children`                 | `ReactNode`                  | A container component with padding and a shadow.    |
+| Component    | Props                        | Prop Types               | Description                                |
+| ------------ | ---------------------------- | ------------------------ | ------------------------------------------ |
+| `<Button />` | `variant`, `children`        | `string`, `ReactNode`    | Primary button for actions.                |
+| `<Card />`   | `children`                   | `ReactNode`              | Styled container for sections or previews. |
+| `<Input />`  | `label`, `value`, `onChange` | `string`, `string`, `fn` | Styled text input with a label.            |
 
 ---
 
 ## 🚀 Getting Started
 
-To get a local copy up and running, please follow these simple steps.
-
 ### Prerequisites
 
-- Node.js (v20 or later)
-- npm or pnpm
+- Node.js v20+
+- pnpm
+- Turso CLI (if you’re running a fresh database)
 
-### Installation & Setup
+### Installation
 
-1. **Clone the repository:**
+1. **Clone & Install:**
 
-   ```sh
+   ```bash
    git clone https://github.com/samirllama/bazaar.git
    cd bazaar
-   ```
-
-2. **Install Client Dependencies:**
-
-   ```sh
    pnpm install
    ```
 
-3. **Install Server Dependencies:**
+2. **Database Setup:**
 
-   ```sh
-   cd ../server
-   pnpm install
+   ```bash
+   # Create and migrate the Turso database
+   pnpm drizzle:generate
+   pnpm drizzle:migrate
    ```
 
-### Running the Application
+3. **Generate Types:**
 
-You will need to run both the client (Vite dev server) and the backend server concurrently.
-
-1. **Run the Backend Server:**
-
-   ```sh
-   # From the /server directory
-   pnpm run dev
+   ```bash
+   pnpm codegen
    ```
 
-   Your GraphQL server will be running at `http://localhost:4000`.
+### Running the App
 
-2. **Run the Client Application:**
+1. **Start the GraphQL Server:**
 
-   ```sh
-   # From the /client directory
-   pnpm run dev
+   ```bash
+   pnpm dev:server
    ```
 
-   Your React application will be available at `http://localhost:5173`.
+   Available at: `http://localhost:4000`
+
+2. **Start the Client:**
+
+   ```bash
+   pnpm dev:client
+   ```
+
+   Available at: `http://localhost:5173`
+
+---
+
+## ✅ Testing Flows
+
+1. **Sign Up / Sign In** via Apollo Studio or UI.
+2. **Create Products** using the multi-step wizard.
+3. **Browse Products** on the Products page (unauthenticated access works).
+4. **Sell Flow Protection**: Unauthenticated users are redirected to login/signup.
+
+---
+
+## 📚 Future Improvements
+
+- Add image uploads for products.
+- Pagination and filtering for product listings.
+- Seller dashboards and analytics.
+
+---

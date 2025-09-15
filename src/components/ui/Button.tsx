@@ -14,11 +14,9 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     { children, variant = "primary", size = "md", className, ...props },
     ref
   ) => {
-    // Base styles for all buttons - slightly tweaked for better focus rings
     const baseStyles =
       "inline-flex items-center justify-center rounded-lg font-semibold tracking-tight transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-neutral-950 disabled:opacity-50";
 
-    // All variant styles have been modernized
     const variantStyles = {
       primary:
         "bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-md hover:shadow-lg focus-visible:ring-purple-500",

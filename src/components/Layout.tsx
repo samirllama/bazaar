@@ -24,7 +24,6 @@ const Layout = () => {
     };
   }, []);
 
-  // bg-gradient-to-b from-purple-50 to-white/0 p-8 dark:from-purple-950/50 dark:to-neutral-950/0
   return (
     <div className="flex min-h-screen flex-col bg-gradient-to-b from-white to-slate-100 text-neutral-900 dark:from-neutral-950 dark:to-slate-900 dark:text-neutral-100">
       <Header />
